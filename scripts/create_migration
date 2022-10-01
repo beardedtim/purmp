@@ -1,0 +1,18 @@
+#!/bin/sh
+## Format date into what I want
+now=$(date +'%m_%d_%Y__%H_%M_%S')
+ 
+## set filename
+filename="$now-$1.ts"
+
+cat <<EOT >> artifacts/db/migrations/$filename
+import { Kysely } from 'kysely'
+
+export async function up(db: Kysely<any>): Promise<void> {
+  // Migration code
+}
+
+export async function down(db: Kysely<any>): Promise<void> {
+  // Migration code
+}
+EOT
