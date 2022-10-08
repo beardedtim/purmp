@@ -13,10 +13,11 @@ const main = traceAsync(
 
     await new Promise((res) => {
       app.listen(Env.port, () => {
-        Log.debug({ port: Env.port }, "Port opened, listening for requests");
         res(void 0);
       });
     });
+
+    Log.trace("Port Opened");
   },
   {
     reason: "app::global",

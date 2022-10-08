@@ -12,13 +12,11 @@ import {
 } from "kysely";
 
 // Generated via db::gen-types
-import { DB } from "kysely-codegen";
+import { DB as DBCodeGen } from "kysely-codegen";
 
 import * as Env from "@app/shared/env";
 import Log from "@app/shared/log";
 
-// Run things in own context
-import * as CTX from "@app/shared/ctx";
 import { traceAsync } from "@app/shared/trace";
 
 const log = Log.child({
@@ -33,11 +31,13 @@ const underlyingPool = new Pool({
   password: "password",
 });
 
-const db = new Kysely<DB>({
+const db = new Kysely<DBCodeGen>({
   dialect: new PostgresDialect({
     pool: underlyingPool,
   }),
 });
+
+export type DB = typeof db;
 
 const dbDefaultMeta = {
   dbDialect: "pg",
@@ -56,8 +56,8 @@ export const migrate = traceAsync(
       }),
     });
 
-    await migrator.migrateToLatest();
-    log.trace("DB migrated to latest");
+    const result = await migrator.migrateToLatest();
+    log.trace(result, "DB migrated to latest");
   },
   {
     ...dbDefaultMeta,

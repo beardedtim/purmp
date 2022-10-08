@@ -68,6 +68,6 @@ export const set = (state: State) =>
  * ctxGetUser('user-123', db) // Promise<{ id: 'user-123', name: "tim" }>
  */
 export const runWith =
-  (fn: (...args: any[]) => unknown, state: State) =>
-  async (...args: any[]) =>
-    run(async () => fn(...args), state);
+  <T = unknown>(fn: (...args: any[]) => unknown, state: State) =>
+  (...args: any[]) =>
+    run(() => fn(...args), state) as T;
