@@ -1,5 +1,5 @@
 import type { Redis } from "ioredis";
-import { Insertable } from "kysely";
+import { Insertable, Selectable, Updateable } from "kysely";
 import { Users } from "kysely-codegen";
 
 import Log from "@app/shared/log";
@@ -8,6 +8,8 @@ import { parseDataAsSchema } from "@app/shared/utils";
 
 import UserRepo from "./repository";
 import * as Schemas from "./schemas";
+import { setTimeout } from "timers/promises";
+import { DB } from "@app/shared/db";
 
 const log = Log.child({
   system: "User Model",
@@ -25,11 +27,44 @@ class UserModel {
     cache: Redis;
   };
 
+  static Prefixes = {
+    IS_UPDATING: "IS_UPDATING",
+  };
+
   constructor(repo: UserRepo, cache: Redis) {
     this.connections = {
       repo,
       cache,
     };
+  }
+
+  #isUpdating(id: string) {
+    return this.connections.cache.exists(
+      `${UserModel.Prefixes.IS_UPDATING}::${id}`
+    );
+  }
+
+  async #startCacheUpdate(id: string) {
+    log.trace({ id }, "Starting to Update Cache");
+
+    await this.connections.cache.set(
+      `${UserModel.Prefixes.IS_UPDATING}::${id}`,
+      "1"
+    );
+  }
+
+  async #stopCacheUpdate(id: string) {
+    log.trace({ id }, "Stopping to Update Cache");
+
+    await this.connections.cache.del(
+      `${UserModel.Prefixes.IS_UPDATING}::${id}`
+    );
+  }
+
+  async #clearById(id: string) {
+    log.trace({ id }, "Clearing User Data");
+
+    await this.connections.cache.hdel(id);
   }
 
   async #storeById(id: string, data: any) {
@@ -42,14 +77,44 @@ class UserModel {
     await this.connections.cache.expire(id, EXPIRE_IN_SEC);
   }
 
-  async getById(id: string) {
+  async getById(
+    id: string,
+    retry = 0
+  ): Promise<Pick<Selectable<Users>, "id" | "email" | "created_at">> {
+    if (await this.#isUpdating(id)) {
+      if (retry === 5) {
+        return this.connections.repo.getById(id);
+      }
+
+      await setTimeout(10);
+
+      return this.getById(id, retry++);
+    }
+
     if (!(await this.connections.cache.exists(id))) {
       log.trace({ id }, "Cache Miss");
+
       await this.#storeById(id, await this.connections.repo.getById(id));
     }
 
     log.trace({ id }, "Getting User from cache");
-    return this.connections.cache.hgetall(id);
+
+    return this.connections.cache.hgetall(id) as unknown as Promise<
+      Pick<Selectable<Users>, "id" | "email" | "created_at">
+    >;
+  }
+
+  async updateById(id: string, update: Updateable<Users>) {
+    await this.#startCacheUpdate(id);
+    const parsed = parseDataAsSchema<Updateable<Users>>(Schemas.update, update);
+
+    const saved = await this.connections.repo.updateById(id, parsed);
+
+    await this.#storeById(id, saved);
+
+    await this.#stopCacheUpdate(id);
+
+    return saved;
   }
 
   async create(user: Insertable<Users>) {

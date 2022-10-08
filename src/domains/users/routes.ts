@@ -41,6 +41,18 @@ export const getById: Middleware = async (ctx) => {
   ctx.body = { data: result };
 };
 
+export const updateById: Middleware = async (ctx) => {
+  const model = getModel();
+  const result = await model.updateById(ctx.params.id, ctx.request.body);
+
+  if (!result) {
+    throw new DomainErrors.DomainItemNotFound("Users", ctx.params.id);
+  }
+
+  ctx.status = 200;
+  ctx.body = { data: result };
+};
+
 export default router
   .post(
     "/",
@@ -48,4 +60,9 @@ export default router
     traceAsync(createUser, { reason: "domains::users::create-user" })
   )
   .get("/:id", traceAsync(getById, { reason: "domains::users::get-by-id" }))
+  .patch(
+    "/:id",
+    Body(),
+    traceAsync(updateById, { reason: "domains::users::-update-by-id" })
+  )
   .routes();

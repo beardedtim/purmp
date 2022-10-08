@@ -2,11 +2,11 @@ import { hash } from "bcrypt";
 
 import type { DB } from "@app/shared/db";
 import type { Users } from "kysely-codegen";
-import type { Insertable } from "kysely";
+import type { Insertable, Updateable } from "kysely";
 
 class UserRepo {
   connection: DB;
-  safeColumns = ["id", "created_at", "email"] as const;
+  safeColumns = ["id", "created_at", "last_updated", "email"] as const;
 
   constructor(db: DB) {
     this.connection = db;
@@ -55,7 +55,7 @@ class UserRepo {
     return this.getByKey("email", email);
   }
 
-  async updateById(id: string, update: Insertable<Users>) {
+  async updateById(id: string, update: Updateable<Users>) {
     const insertData: any = {};
 
     if (update.password) {
