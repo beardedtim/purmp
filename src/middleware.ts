@@ -4,7 +4,20 @@ import * as CTX from "@app/shared/ctx";
 import Log from "@app/shared/log";
 import { uuid, genPrettyID } from "@app/shared/utils";
 import { traceAsync } from "@app/shared/trace";
-import { trace } from "console";
+
+export const globalErrorHandler = (): Middleware => async (ctx, next) => {
+  try {
+    await next();
+  } catch (e) {
+    const err = e as Error & { statusCode?: number };
+    ctx.status = err.statusCode || 500;
+    ctx.body = {
+      error: {
+        message: err.message || "Internal Error Message",
+      },
+    };
+  }
+};
 
 export const globalHandler = (ctx: { [x: string]: any }): Middleware =>
   traceAsync(

@@ -13,6 +13,7 @@ export const createServer = trace<Koa<Koa.DefaultState, Koa.DefaultContext>>(
     Log.debug("Creating new Server");
 
     app
+      .use(Middleware.globalErrorHandler())
       .use(Middleware.useTraceId())
       .use(
         Middleware.globalHandler({

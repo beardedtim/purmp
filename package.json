@@ -15,8 +15,10 @@
   "dependencies": {
     "@koa/router": "^12.0.0",
     "bcrypt": "^5.1.0",
+    "ioredis": "^5.2.3",
     "joi": "^17.6.2",
     "koa": "^2.13.4",
+    "koa-body": "^5.0.0",
     "kysely": "^0.22.0",
     "pg": "^8.8.0",
     "pino": "^8.6.1",

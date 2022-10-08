@@ -2,7 +2,7 @@ import { hash } from "bcrypt";
 
 import type { DB } from "@app/shared/db";
 import type { Users } from "kysely-codegen";
-import type { Insertable, ReferenceExpression, Selectable } from "kysely";
+import type { Insertable } from "kysely";
 
 class UserRepo {
   connection: DB;
@@ -26,18 +26,23 @@ class UserRepo {
     return saved;
   }
 
+  #getBy(key: "id" | "email", value: string) {
+    return this.connection.selectFrom("users").where(key, "=", value);
+  }
+
+  /**
+   * @WARN  This returns the `password` hash from the database
+   *        DO NOT UNDER ANY CIRCUMSTANCE SHOW THIS TO ANY
+   *        USER, ANY LOGGING, ETC. BE EXTREMELY PICKY WHEN YOU
+   *        USE THIS METHOD. THIS IS SIMPLY MADE SO THAT WE CAN
+   *        VALIDATE PASSWORD HASHS MATCH FOR AUTHENTICATION PURPOSES
+   */
   getByKeyUnsafe(key: "id" | "email", value: string) {
-    return this.connection
-      .selectFrom("users")
-      .where(key, "=", value)
-      .selectAll()
-      .executeTakeFirstOrThrow();
+    return this.#getBy(key, value).selectAll().executeTakeFirstOrThrow();
   }
 
   getByKey(key: "id" | "email", value: string) {
-    return this.connection
-      .selectFrom("users")
-      .where(key, "=", value)
+    return this.#getBy(key, value)
       .select(this.safeColumns)
       .executeTakeFirstOrThrow();
   }

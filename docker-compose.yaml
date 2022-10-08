@@ -8,3 +8,8 @@ services:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
       POSTGRES_DB: purmp
+
+  redis:
+    image: redis
+    ports:
+      - "9998:6379"
