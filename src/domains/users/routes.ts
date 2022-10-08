@@ -4,6 +4,7 @@ import Body from "koa-body";
 import { getDB } from "@app/shared/db";
 import { getCache } from "@app/shared/cache";
 import * as DomainErrors from "@app/domains/errors";
+import { traceAsync } from "@app/shared/trace";
 
 import Repo from "./repository";
 import Model from "./model";
@@ -41,6 +42,10 @@ export const getById: Middleware = async (ctx) => {
 };
 
 export default router
-  .post("/", Body(), createUser)
-  .get("/:id", getById)
+  .post(
+    "/",
+    Body(),
+    traceAsync(createUser, { reason: "domains::users::create-user" })
+  )
+  .get("/:id", traceAsync(getById, { reason: "domains::users::get-by-id" }))
   .routes();

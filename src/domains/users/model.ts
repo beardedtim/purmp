@@ -36,6 +36,7 @@ class UserModel {
     log.trace({ id, data }, "Storing User Data");
     // Set it in the cache by the ID
     await this.connections.cache.hset(id, data);
+
     // Set an expire in EXPIRE seconds
     const EXPIRE_IN_SEC = 60;
     await this.connections.cache.expire(id, EXPIRE_IN_SEC);
