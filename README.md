@@ -1,7 +1,6 @@
-# Tracing with Async Local Storage
+# Purmp
 
-This repo is an example of how to use AsyncLocalStorage in order
-to log for tracing.
+A framework for building HTTP-Accessed Data Structures
 
 ## Demo
 

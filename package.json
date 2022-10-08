@@ -1,4 +1,12 @@
 {
+  "name": "@beardedtim/purmp",
+  "version": "0.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "Tim Roberts",
+    "email": "tim@mc-p.com",
+    "url": "https://github.com/beardedtim"
+  },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/koa": "^2.13.5",
